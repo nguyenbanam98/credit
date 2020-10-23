@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, Text, ScrollView, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, ScrollView, Image, ActivityIndicator } from 'react-native';
 import Input from '../../components/Inputs';
 import Submit from '../../components/Submit';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { phoneRegExp, validateEmail } from '../../utils/validate';
+import * as firebase from "firebase";
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 
@@ -12,22 +13,19 @@ const InfoSchema = Yup.object().shape({
         .min(2, 'Too Short!')
         .max(50, 'Too Long!')
         .required('Email is empty')
-        .test('is-jimmy', 'Email is incorrect!', (value) => {
-            return !validateEmail(String(value))
-        })
         .test('is-jimmy1', "Email isn't correct!", (value) => {
             return validateEmail(String(value))
         }),
-    username: Yup.string()
-        .min(2, 'Too Short!')
-        .max(20, 'Too Long!')
-        .required('Username is empty'),
+    // username: Yup.string()
+    //     .min(2, 'Too Short!')
+    //     .max(20, 'Too Long!')
+    //     .required('Username is empty'),
 
-    phone: Yup.string()
-        .required("Phone is empty")
-        .matches(phoneRegExp, 'Phone number is not valid')
-        .min(10, "to short")
-        .max(10, "to long"),
+    // phone: Yup.string()
+    //     .required("Phone is empty")
+    //     .matches(phoneRegExp, 'Phone number is not valid')
+    //     .min(10, "to short")
+    //     .max(10, "to long"),
     password: Yup.string()
         .min(8, 'Too Short!')
         .max(11, 'Too Long!')
@@ -38,20 +36,32 @@ const InfoSchema = Yup.object().shape({
 });
 
 const SignUp = props => {
+
+    const [SignUp, setErrorSignUp] = useState('');
     const navigation = useNavigation();
+
+    const handleSignUp = ({ email, password }) => {
+        firebase
+            .auth()
+            .createUserWithEmailAndPassword(email, password)
+            .then(() => navigation.navigate("Home"))
+            .catch(error => setErrorSignUp(error));
+    };
 
     return (
         <Formik
             initialValues={{
                 email: '',
-                username: '',
-                phone: '',
                 password: '',
                 confirm_password: ''
             }}
             validationSchema={InfoSchema}
-            onSubmit={() => {
-                console.log('da submit');
+            onSubmit={(values) => {
+                setTimeout(() => {
+
+                    handleSignUp(values);
+                }, 1000);
+
             }}
         >
             {({ errors, handleChange, handleSubmit, values }) => (
@@ -61,13 +71,13 @@ const SignUp = props => {
                         <Image source={require('../../assets/login.png')} resizeMode="center" style={styles.image} />
                         <Text style={styles.textTitle}>Let's Get Started</Text>
                         <Text style={styles.textBody}>Create an account to get all features</Text>
-                        <Input
+                        {/* <Input
                             placeholder="Username"
                             icon="user"
                             onChangeText={handleChange('username')}
                             value={values.username}
                         />
-                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.username}</Text>
+                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.username}</Text> */}
                         <Input
                             placeholder="Email"
                             icon="mail"
@@ -75,13 +85,13 @@ const SignUp = props => {
                             value={values.email}
                         />
                         <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.email}</Text>
-                        <Input
+                        {/* <Input
                             placeholder="Phone"
                             icon="phone"
                             onChangeText={handleChange('phone')}
                             value={values.phone}
                         />
-                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.phone}</Text>
+                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.phone}</Text> */}
                         <Input
                             placeholder="Password"
                             icon="lock"
@@ -120,6 +130,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
+        marginBottom: 10
     },
     image: {
         width: 400,

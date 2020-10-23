@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
         width: '90%',
         height: 50,
         borderRadius: 100,
-        marginVertical: 10,
+        marginVertical: 5,
         borderWidth: 1.5
     },
     inputContainer: {

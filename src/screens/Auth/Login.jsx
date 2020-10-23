@@ -1,17 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Text, Image, ScrollView } from 'react-native';
-
-import Inputs from '../../components/Inputs';
+import { useNavigation } from '@react-navigation/native';
+import { validateEmail } from '../../utils/validate';
+import Input from '../../components/Inputs';
 import Submit from '../../components/Submit';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import * as firebase from "firebase";
+
 // import Account from '../../components/Account';
 
+
 const InfoSchema = Yup.object().shape({
-    username: Yup.string()
+    email: Yup.string()
         .min(2, 'Too Short!')
-        .max(20, 'Too Long!')
-        .required('Username is empty'),
+        .max(50, 'Too Long!')
+        .required('Email is empty')
+        .test('is-jimmy1', "Email isn't correct!", (value) => {
+            return validateEmail(String(value))
+        }),
 
 
     password: Yup.string()
@@ -22,16 +29,31 @@ const InfoSchema = Yup.object().shape({
 
 
 const Login = props => {
+
+    const navigation = useNavigation();
+    const [errorLogin, setErrorLogin] = useState('');
+
+
+    const handleLogin = ({ email, password }) => {
+        firebase
+            .auth()
+            .signInWithEmailAndPassword(email, password)
+            .then(() => {
+                navigation.navigate("Home");
+            })
+            .catch(error => setErrorLogin(error));
+    };
+
     return (
         <Formik
             initialValues={{
-                username: '',
+                email: '',
                 password: '',
             }}
             validationSchema={InfoSchema}
-            onSubmit={(errors) => {
-                console.log(errors);
 
+            onSubmit={(values) => {
+                handleLogin(values);
             }}
         >
             {({ errors, handleChange, handleSubmit, values }) => (
@@ -44,14 +66,14 @@ const Login = props => {
                         <Text style={styles.textTitle}>Welcome back</Text>
                         <Text style={styles.textBody}>Log in to your existant account</Text>
                         <View style={{ marginTop: 20 }} />
-                        <Inputs
-                            placeholder="Username"
-                            icon="user"
-                            onChangeText={handleChange('username')}
-                            value={values.username}
+                        <Input
+                            placeholder="Email"
+                            icon="mail"
+                            onChangeText={handleChange('email')}
+                            value={values.email}
                         />
-                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.username}</Text>
-                        <Inputs
+                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.email}</Text>
+                        <Input
                             placeholder="Password"
                             icon="lock"
                             pass={true}
@@ -60,21 +82,20 @@ const Login = props => {
                         />
                         <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.password}</Text>
                         <View style={{ width: '90%' }}>
-                            <Text style={[styles.textBody], { alignSelf: 'flex-end' }}>Forgot Password?</Text>
+                            <Text style={[styles.textBody], { alignSelf: 'flex-end', color: '#0C79D4' }}>Forgot Password?</Text>
                         </View>
                         <Submit
                             title="LOG IN"
-                            color="#0148a4"
+                            color="#0C91D4"
                             handleSubmit={handleSubmit}
                         />
-                        {/* <Text style={styles.textBody}>Or connect using</Text>
-                <View style={{ flexDirection: 'row' }}>
-                    <Account color="#3b5c8f" icon="facebook" title="Facebook" />
-                    <Account color="#ec482f" icon="google" title="Google" />
-                </View> */}
                         <View style={{ flexDirection: 'row', marginVertical: 5 }}>
-                            <Text style={styles.textBody}>Don't Have an account</Text>
-                            <Text style={[styles.textBody, { color: 'blue' }]} onPress={() => props.navigation.navigate('SignUp')}> Sign Up</Text>
+                            <Text style={styles.textBody}>Don't Have an account </Text>
+                            <Text style={[styles.textBody, { color: '#0C79D4' }]}
+                                onPress={() => navigation.navigate('SignUp')}
+                            >
+                                Sign Up
+                            </Text>
                         </View>
                     </View>
                 </ScrollView>
@@ -88,7 +109,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        marginBottom: 10
     },
     image: {
         width: 400,
@@ -100,7 +122,7 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     textBody: {
-        fontSize: 16
+        fontSize: 16,
     }
 });
 
