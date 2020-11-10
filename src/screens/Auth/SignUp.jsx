@@ -12,26 +12,19 @@ const InfoSchema = Yup.object().shape({
     email: Yup.string()
         .min(2, 'Too Short!')
         .max(50, 'Too Long!')
+        .trim()
         .required('Email is empty')
         .test('is-jimmy1', "Email isn't correct!", (value) => {
             return validateEmail(String(value))
         }),
-    // username: Yup.string()
-    //     .min(2, 'Too Short!')
-    //     .max(20, 'Too Long!')
-    //     .required('Username is empty'),
-
-    // phone: Yup.string()
-    //     .required("Phone is empty")
-    //     .matches(phoneRegExp, 'Phone number is not valid')
-    //     .min(10, "to short")
-    //     .max(10, "to long"),
     password: Yup.string()
         .min(8, 'Too Short!')
+        .trim()
         .max(11, 'Too Long!')
         .required('Password is empty'),
     confirm_password: Yup.string()
         .oneOf([Yup.ref("password")], "Password's not match")
+        .trim()
         .required("Required!")
 });
 
@@ -44,7 +37,7 @@ const SignUp = props => {
         firebase
             .auth()
             .createUserWithEmailAndPassword(email, password)
-            .then(() => navigation.navigate("Home"))
+            .then(() => navigation.navigate("CreditApp"))
             .catch(error => setErrorSignUp(error));
     };
 

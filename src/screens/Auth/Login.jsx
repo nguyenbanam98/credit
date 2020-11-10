@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, Text, Image, ScrollView,ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { validateEmail } from '../../utils/validate';
+import { Overlay } from 'react-native-elements';
 import Input from '../../components/Inputs';
 import Submit from '../../components/Submit';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
 import * as firebase from "firebase";
 
-// import Account from '../../components/Account';
-
-
 const InfoSchema = Yup.object().shape({
     email: Yup.string()
+        .trim()
         .min(2, 'Too Short!')
         .max(50, 'Too Long!')
         .required('Email is empty')
@@ -22,6 +21,7 @@ const InfoSchema = Yup.object().shape({
 
 
     password: Yup.string()
+        .trim()
         .min(8, 'Too Short!')
         .max(11, 'Too Long!')
         .required('Password is empty'),
@@ -31,17 +31,24 @@ const InfoSchema = Yup.object().shape({
 const Login = props => {
 
     const navigation = useNavigation();
-    const [errorLogin, setErrorLogin] = useState('');
+    // const [loading, setLoading] = useState(false);
+    const [visible, setVisible] = useState(false);
+
+    const [errorLogin, setErrorLogin] = useState(false);
 
 
     const handleLogin = ({ email, password }) => {
+        setVisible(true)
         firebase
             .auth()
             .signInWithEmailAndPassword(email, password)
-            .then(() => {
-                navigation.navigate("Home");
+            .then((data) => {
+                navigation.navigate("CreditApp");
+                setVisible(false)
             })
-            .catch(error => setErrorLogin(error));
+            .catch(error => {
+                setErrorLogin(true)
+            });
     };
 
     return (
@@ -59,12 +66,24 @@ const Login = props => {
             {({ errors, handleChange, handleSubmit, values }) => (
                 <ScrollView style={{ backgroundColor: 'white' }}>
                     <View style={styles.container}>
+                    <Overlay isVisible={visible}>
+                        <View>
+                            <Text>Loading ...</Text>
+                            <ActivityIndicator size="large" color="#0000ff"/>
+                        </View>
+                        
+                    </Overlay>
                         <Image
                             source={require('../../assets/login.png')}
                             resizeMode="center"
                             style={styles.image} />
                         <Text style={styles.textTitle}>Welcome back</Text>
                         <Text style={styles.textBody}>Log in to your existant account</Text>
+                        
+                        <Text style={styles.textError}>{errorLogin ? 'Login failed' : ''}</Text>
+
+                        
+                        
                         <View style={{ marginTop: 20 }} />
                         <Input
                             placeholder="Email"
@@ -123,6 +142,10 @@ const styles = StyleSheet.create({
     },
     textBody: {
         fontSize: 16,
+    },
+    textError: {
+        fontSize: 16,
+        color: 'red',
     }
 });
 
