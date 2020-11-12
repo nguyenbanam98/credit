@@ -17,6 +17,14 @@ const InfoSchema = Yup.object().shape({
         .test('is-jimmy1', "Email isn't correct!", (value) => {
             return validateEmail(String(value))
         }),
+    username: Yup.string()
+        .min(2, 'Too Short!')
+        .max(100, 'Too Long!')
+        .required('Name is empty'),
+    phone: Yup.string()
+        .min(2, 'Too Short!')
+        .max(11, 'Too Long!')
+        .required('Phone is empty'),
     password: Yup.string()
         .min(8, 'Too Short!')
         .trim()
@@ -30,30 +38,48 @@ const InfoSchema = Yup.object().shape({
 
 const SignUp = props => {
 
-    const [SignUp, setErrorSignUp] = useState('');
+    
     const navigation = useNavigation();
 
-    const handleSignUp = ({ email, password }) => {
+    const handleSignUp = ({ email,username, phone, password }) => {
+
+       
         firebase
             .auth()
             .createUserWithEmailAndPassword(email, password)
-            .then(() => navigation.navigate("CreditApp"))
+            .then(({user}) => {
+
+                console.log("user: ",  user)
+             
+                firebase.firestore().collection("users").doc(user.uid).set({
+                    email,
+                    username,
+                    phone,
+                    password
+                })
+                .then (() => navigation.navigate("Login"))
+                .catch(err => console.log(err))
+                
+             })
             .catch(error => setErrorSignUp(error));
-    };
+        // Add a new document in collection "cities"
+        
+
+        };
 
     return (
         <Formik
             initialValues={{
                 email: '',
+                username: '',
+                phone: '',
                 password: '',
                 confirm_password: ''
             }}
             validationSchema={InfoSchema}
             onSubmit={(values) => {
-                setTimeout(() => {
 
                     handleSignUp(values);
-                }, 1000);
 
             }}
         >
@@ -64,13 +90,14 @@ const SignUp = props => {
                         <Image source={require('../../assets/login.png')} resizeMode="center" style={styles.image} />
                         <Text style={styles.textTitle}>Let's Get Started</Text>
                         <Text style={styles.textBody}>Create an account to get all features</Text>
-                        {/* <Input
+                        
+                        <Input
                             placeholder="Username"
                             icon="user"
                             onChangeText={handleChange('username')}
                             value={values.username}
                         />
-                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.username}</Text> */}
+                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.username}</Text>
                         <Input
                             placeholder="Email"
                             icon="mail"
@@ -78,13 +105,13 @@ const SignUp = props => {
                             value={values.email}
                         />
                         <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.email}</Text>
-                        {/* <Input
+                        <Input
                             placeholder="Phone"
                             icon="phone"
                             onChangeText={handleChange('phone')}
                             value={values.phone}
                         />
-                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.phone}</Text> */}
+                        <Text style={{ alignSelf: 'flex-start', fontSize: 12, color: 'red', marginLeft: 16 }}>{errors.phone}</Text>
                         <Input
                             placeholder="Password"
                             icon="lock"

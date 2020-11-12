@@ -9,6 +9,7 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import * as firebase from "firebase";
 
+
 const InfoSchema = Yup.object().shape({
     email: Yup.string()
         .trim()
@@ -31,10 +32,12 @@ const InfoSchema = Yup.object().shape({
 const Login = props => {
 
     const navigation = useNavigation();
-    // const [loading, setLoading] = useState(false);
+    
     const [visible, setVisible] = useState(false);
 
     const [errorLogin, setErrorLogin] = useState(false);
+
+    
 
 
     const handleLogin = ({ email, password }) => {
